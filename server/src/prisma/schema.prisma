@@ -42,7 +42,8 @@ model Startup {
   name          String
   industry      String   // Made required for data quality
   fundingNeeded Int      // Made required for data quality
-  pitchDeckUrl  String?
+  pitchDeckPdf  String?  // S3 key for PDF
+  pitchDeckVideo String? // S3 key for Video
   createdAt     DateTime @default(now())
 
   // Relations
