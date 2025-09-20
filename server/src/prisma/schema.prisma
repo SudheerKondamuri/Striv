@@ -1,0 +1,81 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       String  @id @default(uuid())
+  name     String
+  email    String  @unique
+  role     String // entrepreneur | investor
+  bio      String?
+  location String?
+
+  // Relations
+  startups Startup[]
+  deals    Deal[]    @relation("InvestorDeals")
+  messages Message[]
+  events   Event[]   @relation("UserEvents")
+
+  createdAt DateTime @default(now())
+}
+
+model Startup {
+  id            String  @id @default(uuid())
+  name          String
+  industry      String?
+  fundingNeeded Int?
+  pitchDeckUrl  String?
+
+  // Relations
+  owner   User   @relation(fields: [ownerId], references: [id])
+  ownerId String
+  deals   Deal[]
+
+  createdAt DateTime @default(now())
+}
+
+model Deal {
+  id     String  @id @default(uuid())
+  status String  @default("reviewing")
+  notes  String?
+
+  // Relations
+  startup    Startup   @relation(fields: [startupId], references: [id])
+  startupId  String
+  investor   User      @relation("InvestorDeals", fields: [investorId], references: [id])
+  investorId String
+  messages   Message[]
+
+  createdAt DateTime @default(now())
+}
+
+model Message {
+  id      String @id @default(uuid())
+  content String
+
+  // Relations
+  sender   User   @relation(fields: [senderId], references: [id])
+  senderId String
+  deal     Deal   @relation(fields: [dealId], references: [id])
+  dealId   String
+
+  sentAt DateTime @default(now())
+}
+
+model Event {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  eventDate   DateTime
+
+  // Relations
+  createdBy   User   @relation("UserEvents", fields: [createdById], references: [id])
+  createdById String
+
+  createdAt DateTime @default(now())
+}
