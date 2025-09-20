@@ -33,6 +33,9 @@ migrate_working_dir/
 /build/
 /coverage/
 
+# Node.js
+node_modules/
+
 # Symbolication related
 app.*.symbols
 
@@ -43,4 +46,8 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Server
 /server/.env
+/server/node_modules
+/server/prisma/dev.db
