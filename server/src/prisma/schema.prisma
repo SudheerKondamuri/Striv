@@ -7,64 +7,76 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Enums provide type-safety for specific fields
+enum Role {
+  ENTREPRENEUR
+  INVESTOR
+}
+
+enum DealStatus {
+  REVIEWING
+  INTERESTED
+  SHORTLISTED
+  DECLINED
+}
+
 model User {
-  id       String  @id @default(uuid())
-  name     String
-  email    String  @unique
-  role     String // entrepreneur | investor
-  bio      String?
-  location String?
+  id        String    @id @default(uuid())
+  name      String
+  email     String    @unique
+  role      Role      // Changed to Enum
+  bio       String?
+  location  String?
+  createdAt DateTime  @default(now())
 
   // Relations
-  startups Startup[]
-  deals    Deal[]    @relation("InvestorDeals")
-  messages Message[]
-  events   Event[]   @relation("UserEvents")
-
-  createdAt DateTime @default(now())
+  startups        Startup[]
+  dealsAsInvestor Deal[]    @relation("InvestorDeals")
+  sentMessages    Message[] @relation("SentMessages")
+  receivedMessages Message[] @relation("ReceivedMessages")
+  events          Event[]   @relation("UserEvents")
 }
 
 model Startup {
-  id            String  @id @default(uuid())
+  id            String   @id @default(uuid())
   name          String
-  industry      String?
-  fundingNeeded Int?
+  industry      String   // Made required for data quality
+  fundingNeeded Int      // Made required for data quality
   pitchDeckUrl  String?
+  createdAt     DateTime @default(now())
 
   // Relations
-  owner   User   @relation(fields: [ownerId], references: [id])
-  ownerId String
-  deals   Deal[]
-
-  createdAt DateTime @default(now())
+  owner     User     @relation(fields: [ownerId], references: [id])
+  ownerId   String
+  deals     Deal[]
 }
 
 model Deal {
-  id     String  @id @default(uuid())
-  status String  @default("reviewing")
-  notes  String?
+  id         String     @id @default(uuid())
+  status     DealStatus @default(REVIEWING) // Changed to Enum
+  notes      String?
+  createdAt  DateTime   @default(now())
 
   // Relations
-  startup    Startup   @relation(fields: [startupId], references: [id])
+  startup    Startup    @relation(fields: [startupId], references: [id])
   startupId  String
-  investor   User      @relation("InvestorDeals", fields: [investorId], references: [id])
+  investor   User       @relation("InvestorDeals", fields: [investorId], references: [id])
   investorId String
   messages   Message[]
-
-  createdAt DateTime @default(now())
 }
 
 model Message {
-  id      String @id @default(uuid())
-  content String
+  id        String   @id @default(uuid())
+  content   String
+  sentAt    DateTime @default(now())
 
   // Relations
-  sender   User   @relation(fields: [senderId], references: [id])
-  senderId String
-  deal     Deal   @relation(fields: [dealId], references: [id])
-  dealId   String
-
-  sentAt DateTime @default(now())
+  deal        Deal     @relation(fields: [dealId], references: [id])
+  dealId      String
+  sender      User     @relation("SentMessages", fields: [senderId], references: [id])
+  senderId    String
+  receiver    User     @relation("ReceivedMessages", fields: [receiverId], references: [id])
+  receiverId  String // Added receiver for clarity
 }
 
 model Event {
@@ -72,10 +84,9 @@ model Event {
   title       String
   description String?
   eventDate   DateTime
+  createdAt   DateTime @default(now())
 
   // Relations
-  createdBy   User   @relation("UserEvents", fields: [createdById], references: [id])
+  createdBy   User     @relation("UserEvents", fields: [createdById], references: [id])
   createdById String
-
-  createdAt DateTime @default(now())
 }
