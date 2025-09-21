@@ -21,20 +21,27 @@ enum DealStatus {
 }
 
 model User {
-  id        String    @id @default(uuid())
-  name      String
-  email     String    @unique
-  role      Role      // Changed to Enum
-  bio       String?
-  location  String?
-  createdAt DateTime  @default(now())
+  id         String    @id @default(uuid())
+  name       String
+  email      String    @unique
+  role       Role
+  bio        String?
+  location   String?
+  createdAt  DateTime  @default(now())
+
+  // --- Add these new fields ---
+  address    String?
+  profilePic String? // This will store the S3 key or URL
+  DOB        DateTime?
+  gender     String?
+  Phoneno    String?   @unique
 
   // Relations
-  startups        Startup[]
-  dealsAsInvestor Deal[]    @relation("InvestorDeals")
-  sentMessages    Message[] @relation("SentMessages")
+  startups         Startup[]
+  dealsAsInvestor  Deal[]    @relation("InvestorDeals")
+  sentMessages     Message[] @relation("SentMessages")
   receivedMessages Message[] @relation("ReceivedMessages")
-  events          Event[]   @relation("UserEvents")
+  events           Event[]   @relation("UserEvents")
 }
 
 model Startup {
