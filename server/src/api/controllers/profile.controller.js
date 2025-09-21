@@ -1,4 +1,4 @@
-import prisma from '../../../prisma/client.js';
+import prisma from '../../prisma/client.js';
 
 export const createStartupProfile = async (req, res) => {
   if (req.userData.role !== 'ENTREPRENEUR') {
