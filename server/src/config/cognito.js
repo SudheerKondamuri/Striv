@@ -1,5 +1,4 @@
-import dotenv from "dotenv";
-dotenv.config();
+
 import { CognitoUserPool } from "amazon-cognito-identity-js";
 
 const poolData = {

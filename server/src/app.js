@@ -1,14 +1,15 @@
+import dotenv from "dotenv";
+dotenv.config();
 import express from "express";
 import cors from "cors";
 import morgan from "morgan";
 const app = express();
-import dotenv from "dotenv";
 import rateLimit from 'express-rate-limit';
-
+import s3Routes from "./api/routes/s3.routes.js";
 import authRoutes from './api/routes/auth.routes.js';
 import profileRoutes from './api/routes/profile.routes.js';
 
-dotenv.config();
+
 app.use(cors());
 app.use(morgan("dev"));
 app.use(express.json());
@@ -27,5 +28,6 @@ app.get('/', (req, res) => {
 app.use('/api', apiLimiter);
 app.use('/api/auth', authRoutes);
 app.use('/api/profiles', profileRoutes);
+app.use('/api/s3', s3Routes); 
 
 export default app;
