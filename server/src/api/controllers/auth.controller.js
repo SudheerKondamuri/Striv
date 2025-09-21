@@ -1,4 +1,5 @@
-import userPool from "../../config/cognito.js";
+import { getUserPool } from "../../config/cognito.js";
+const userPool = getUserPool();
 import {
   CognitoUserAttribute,
   AuthenticationDetails,
