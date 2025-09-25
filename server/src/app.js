@@ -20,8 +20,7 @@ const apiLimiter = rateLimit({
 })
 
 app.get('/', (req, res) => {
-  const id = process.env.DB_USER;
-  res.send(`'Hello World! ' ${id}`);
+  res.send(`'Hello World! '`);
 });
 app.use('/api', apiLimiter);
 app.use('/api/auth', authRoutes);

@@ -7,7 +7,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Enums provide type-safety for specific fields
+// ---------------- ENUMS ----------------
 enum Role {
   ENTREPRENEUR
   INVESTOR
@@ -20,21 +20,22 @@ enum DealStatus {
   DECLINED
 }
 
+// ---------------- MODELS ----------------
 model User {
   id         String    @id @default(uuid())
   name       String
   email      String    @unique
   role       Role
-  bio        String?
-  location   String?
   createdAt  DateTime  @default(now())
+  profileComplete Boolean   @default(false)
+  bio        String?        // short preview for feed
+  location   String?
+  profilePic String?        // core (frequently shown)
+  phoneno    String? @unique
+  
 
-  // --- Add these new fields ---
-  address    String?
-  profilePic String? // This will store the S3 key or URL
-  DOB        DateTime?
-  gender     String?
-  Phoneno    String?   @unique
+  // Rare fields -> throw here
+  metadata   Json?          // e.g., DOB, gender, address, socials
 
   // Relations
   startups         Startup[]
@@ -45,13 +46,20 @@ model User {
 }
 
 model Startup {
-  id            String   @id @default(uuid())
-  name          String
-  industry      String   // Made required for data quality
-  fundingNeeded Int      // Made required for data quality
-  pitchDeckPdf  String?  // S3 key for PDF
-  pitchDeckVideo String? // S3 key for Video
-  createdAt     DateTime @default(now())
+  id             String   @id @default(uuid())
+  name           String
+  industry       String
+  fundingNeeded  Int
+  createdAt      DateTime @default(now())
+
+  // Core media
+
+  pitchThumbNail   String?
+  pitchLogo String?
+
+  // Rare shit like tags, team size, website
+  description String
+  metadata       Json?
 
   // Relations
   owner     User     @relation(fields: [ownerId], references: [id])
@@ -61,7 +69,7 @@ model Startup {
 
 model Deal {
   id         String     @id @default(uuid())
-  status     DealStatus @default(REVIEWING) // Changed to Enum
+  status     DealStatus @default(REVIEWING)
   notes      String?
   createdAt  DateTime   @default(now())
 
@@ -79,22 +87,25 @@ model Message {
   sentAt    DateTime @default(now())
 
   // Relations
-  deal        Deal     @relation(fields: [dealId], references: [id])
-  dealId      String
-  sender      User     @relation("SentMessages", fields: [senderId], references: [id])
-  senderId    String
-  receiver    User     @relation("ReceivedMessages", fields: [receiverId], references: [id])
-  receiverId  String // Added receiver for clarity
+  deal       Deal @relation(fields: [dealId], references: [id])
+  dealId     String
+  sender     User @relation("SentMessages", fields: [senderId], references: [id])
+  senderId   String
+  receiver   User @relation("ReceivedMessages", fields: [receiverId], references: [id])
+  receiverId String
 }
 
 model Event {
   id          String   @id @default(uuid())
   title       String
-  description String?
   eventDate   DateTime
   createdAt   DateTime @default(now())
 
+  // Optional stuff -> not queried every time
+  description String?
+  metadata    Json?
+
   // Relations
-  createdBy   User     @relation("UserEvents", fields: [createdById], references: [id])
+  createdBy   User @relation("UserEvents", fields: [createdById], references: [id])
   createdById String
 }

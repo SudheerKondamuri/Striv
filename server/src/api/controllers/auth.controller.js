@@ -1,4 +1,4 @@
-import { getUserPool } from "../../config/cognito.js";
+import { getUserPool } from "../../config/cognito.js";3
 const userPool = getUserPool();
 import {
   CognitoUserAttribute,
@@ -8,72 +8,41 @@ import {
 } from "amazon-cognito-identity-js";
 import prisma from "../../prisma/client.js";
 
-export const signup = (req, res) => {
-  const {
-    name,
-    email,
-    password,
-    role,
-    address,
-    profilePic,
-    DOB,
-    gender,
-    Phoneno,
-  } = req.body;
+export const signup = async (req, res) => {
+  const { name, email, password, role } = req.body;
 
   const attributeList = [
     new CognitoUserAttribute({ Name: "name", Value: name }),
     new CognitoUserAttribute({ Name: "email", Value: email }),
-    new CognitoUserAttribute({ Name: "phone_number", Value: Phoneno }),
-    new CognitoUserAttribute({ Name: "gender", Value: gender }),
-    new CognitoUserAttribute({ Name: "birthdate", Value: DOB }), 
-    new CognitoUserAttribute({ Name: "address", Value: address }),
-    new CognitoUserAttribute({ Name: "role", Value: role }),
-    new CognitoUserAttribute({ Name: "profilePic", Value: profilePic }),
   ];
-
-  userPool.signUp(
-    email,
-    password,
-    attributeList,
-    null,
-    async (err, result) => {
-      if (err) {
-        return res
-          .status(400)
-          .json({ error: err.message || JSON.stringify(err) });
-      }
-
-      try {
-        await prisma.user.create({
-          data: {
-            id: result.userSub,
-            name,
-            email,
-            role: role,
-            address,
-            profilePic,
-            DOB: DOB ? new Date(DOB) : null,
-            gender,
-            Phoneno,
-          },
-        });
-        res.status(201).json({
-          message:
-            "User signed up successfully! Please check your email to verify.",
-          cognitoUsername: result.user.getUsername(),
-        });
-      } catch (dbError) {
-        res
-          .status(500)
-          .json({
-            error: "Failed to save user to database.",
-            details: dbError.message,
-          });
-      }
+   
+  userPool.signUp(email, password, attributeList, null, async (err, result) => {
+    if (err) {
+      return res.status(400).json({ error: err.message || JSON.stringify(err) });
     }
-  );
+
+    try {
+      const validRoles = ["ENTREPRENEUR", "INVESTOR"];
+      const finalRole = validRoles.includes(role) ? role : "ENTREPRENEUR";
+      await prisma.user.create({
+        data: {
+          id: result.userSub,
+          name,
+          email,
+          role: finalRole,
+          profileComplete: false // must match enum exactly
+        },
+      });
+      res.status(201).json({
+        message: "User signed up successfully!",
+        cognitoUsername: result.user.getUsername(),
+      });
+    } catch (dbError) {
+      res.status(500).json({ error: "Failed to save user to database.", details: dbError.message });
+    }
+  });
 };
+
 
 
 export const login = (req, res) => {
